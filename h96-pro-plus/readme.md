@@ -13,4 +13,4 @@
 ## Instalando o Linux
 
 - [Ubuntu](/h96-pro-plus/ubuntu/readme.md)
-- [Ubuntu](/h96-pro-plus/debian/readme.md)
+- [Debian](/h96-pro-plus/debian/readme.md)
