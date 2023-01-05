@@ -7,6 +7,7 @@
 - CPU: S912
 - Memória: 2GB / 16GB Flash
 - Sistema Operacional: Android 7.1
+- Voltagem: 5V DC
 
 <img src="./aida64.jpg" height="400">
 
