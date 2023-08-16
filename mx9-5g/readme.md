@@ -42,7 +42,7 @@
 1. Executar os comandos a seguir:
 ```bash
 pip install --upgrade pip
-This package requires Rust >=1.56.0
+sudo apt-get install build-essential libssl-dev libffi-dev python3-dev cargo pkg-config
 ```
 
 2. Siga os passos da página oficial de instalação do [Home Assistant Core](https://www.home-assistant.io/installation/linux#install-home-assistant-core).
