@@ -59,8 +59,4 @@ timedatectl
 #### Definindo o IP estático
 
 1. Definir IP fixo usando o comando **armbian-config** (192.168.100.14);
-2. Reiniciar a TV Box
-
-## Referências
-
-[Imagens compatíveis](https://imola.armbian.com/dl/rk322x-box/archive/)
+2. Reiniciar a TV Box.
