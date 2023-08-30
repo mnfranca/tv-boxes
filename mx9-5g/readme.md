@@ -1,10 +1,11 @@
 # TV Box MX9 5G
 
-## Especificações originais
+## Especificações técnicas
 
 - Modelo: 
 - CPU: RK329Q_V8.0
-- Memória: 3GB / 32GB Flash
+- Memória: 975MB
+- Disco: 7GB
 - Sistema Operacional: Android 9.0
 - Voltagem: 5V / 2.0A
 
@@ -51,12 +52,26 @@ apt upgrade
 #### Definindo o timezone
 
 ```bash
+timedatectl
 timedatectl list-timezones | grep Campo_Grande
 timedatectl set-timezone America/Campo_Grande
-timedatectl
 ```
 
 #### Definindo o IP estático
 
 1. Definir IP fixo usando o comando **armbian-config** (192.168.100.14);
 2. Reiniciar a TV Box.
+
+### Instalando Home Assistant Container
+
+```bash
+apt install apparmor jq wget curl udisks2 libglib2.0-bin network-manager dbus lsb-release systemd-journal-remote systemd-resolved -y
+```
+
+```bash
+curl -fsSL get.docker.com | sh
+```
+
+```bash
+docker run -d --name homeassistant --privileged --restart=unless-stopped -e TZ=America/Campo_Grande -v /home/homeassistant:/config --network=host ghcr.io/home-assistant/home-assistant:stable
+```
