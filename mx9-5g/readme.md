@@ -2,7 +2,7 @@
 
 ## Especificações técnicas
 
-- Modelo: 
+- Modelo: MX9 5G
 - CPU: RK329Q_V8.0
 - Memória: 975MB
 - Disco: 7GB
