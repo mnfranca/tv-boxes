@@ -1,0 +1,5 @@
+# Arquivos de firmware ou muito grandes
+firmware*
+*.img
+*.img.xz
+*.zip
