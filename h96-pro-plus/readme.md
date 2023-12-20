@@ -105,6 +105,52 @@ wget -O - https://get.hacs.xyz | bash -
 
 - Instalar a integração HACS no Home Assistant.
 
+## Instalando o Oracle 
+
+### Expandindo o espaço de armazenamento da pasta de images do Docker
+
+1. Reservar um sdcard dedicado para funcionar como armazenamento adicional;
+
+2. Formatando o pendrive:
+
+```bash
+mkfs.ext4 /dev/sda
+```
+
+3. Recuperando o UUID da unidade do pendrive:
+
+```bash
+blkid /dev/sda
+```
+
+4. Alterando o arquivo **/etc/fstav** para mapear a pasta **/var/lib/docker** para o pendrive:
+
+```bash
+UUID=f8c0b32c-9d40-49df-8b40-b0811ded555c /var/lib/docker    ext4    defaults        0       2
+```
+
+5. Executar a montagem da pasta **/var/lib/docker** no pendrive:
+
+```bash
+mount -a
+```
+
+6. Reinicie o sistema;
+
+### Instalando o Oracle Express a partir de imagem na última versão
+
+1. Baixe a imagem do Oracle:
+
+```bash
+docker pull container-registry.oracle.com/database/express:latest
+```
+
+2. Execute o container do Oracle:
+
+```bash
+docker run -d --name oracle-database container-registry.oracle.com/database/express:21.3.0-xe
+```
+
 ## Unbrick
 
 - [Unbrick](./unbrick/readme.md)

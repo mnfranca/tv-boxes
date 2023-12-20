@@ -56,6 +56,7 @@ APPEND root=LABEL=ROOTFS rootflags=data=writeback rw console=ttyAML0,115200n8 co
 ```bash
 sudo nano /etc/network/interfaces
 ```
+
 ```
 auto eth0
 iface eth0 inet static
@@ -64,6 +65,7 @@ netmask 255.255.255.0
 gateway 192.168.100.1
 dns-nameservers 8.8.8.8 8.8.4.4
 ```
+
 ```bash
 sudo reboot
 ```
@@ -82,72 +84,91 @@ timedatectl
 cat /etc/os-release
 lsb_release -a
 hostnamectl
-Type the following command to find Linux kernel version:
 uname -
 ```
 
 ## Atualizando o Linux Debian 10 (buster) para Debian 11 (bullseye) 
 
 ```bash
-sudo apt install gcc-8-base
-sudo apt-get --allow-releaseinfo-change update
+sudo apt install gcc-8-base -y
+sudo apt --allow-releaseinfo-change update -y
 sudo apt upgrade -y
+```
+
+- Reinicie o sistema;
+
+- Altere os repositórios para apontar para Debian 11:
+
+```bash
 sudo nano /etc/apt/sources.list
 ```
 
-Comentar as linhas do arquivo e incluir as linhas a seguir:
+- Edite o arquivo da seguinte forma:
 
 ```
-deb http://deb.debian.org/debian 1 bullseye main contrib non-free
-deb http://deb.debian.org/debian 1 bullseye-updates main contrib non-free
+# Debian 11 Bullseye
+deb http://deb.debian.org/debian bullseye main contrib non-free
+deb http://deb.debian.org/debian bullseye-updates main contrib non-free
 deb http://security.debian.org/debian-security bullseye-security main
 deb http://ftp.debian.org/debian bullseye-backports main contrib non-free
 ```
 
+- Execute a atualiação:
+
 ```bash
-sudo apt update
-sudo apt full-upgrade
-sudo reboot
+sudo apt update -y
+sudo apt full-upgrade -y
 ```
+
+- Reinicie o sistema.
 
 ## Atualizando o Linux Debian 11 (bullseye) para Debian 12 (bookworm)
 
 ```bash
-sudo apt update
-sudo apt upgrade
+sudo apt update -y
+sudo apt upgrade -y
+```
+
+- Altere os repositórios para apontar para Debian 12:
+
+```bash
 sudo nano /etc/apt/sources.list
 ```
 
-- Editar o arquivo da seguinte forma:
+- Edite o arquivo da seguinte forma:
 
 ```
-#Debian 12 Bookworm
+# Debian 12 Bookworm
 deb http://deb.debian.org/debian/ bookworm main non-free-firmware
 deb http://deb.debian.org/debian/ bookworm-updates main non-free-firmware
 deb http://security.debian.org/debian-security/ bookworm-security main non-free-firmware
 deb http://deb.debian.org/debian/ bookworm-backports main non-free-firmware
 ```
 
-- Atualizar o sistema:
+- Atualize o sistema:
 
 ```bash
- sudo apt update
- sudo apt upgrade
- sudo apt dist-upgrade
+ sudo apt update -y
+ sudo apt upgrade -y
+ sudo apt dist-upgrade -y
 ```
 
-## Instalar o Home Assistant
+- Reinicie o sistema.
 
-- Logar com usuário root;
+## Instalando o Home Assistant
 
-- Instalar a seguinte dependência:
+- Logue com usuário root;
+
+- Instale a seguinte dependência:
 
 ```bash
-sudo apt-get install systemd-journal-remote
-apt-get install systemd-journal-remote -y
+sudo apt install systemd-journal-remote -y
+sudo apt install systemd-resolved -y
 ```
 
--  Instalar o Home Assistant:
+- Reinicie o sistema;
+
+- Instale o Home Assistant:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/leofig-rj/Hassio-Tanix-TX3/master/script/hassio_tanix_tx3.sh | bash -s
@@ -157,6 +178,50 @@ curl -sL https://raw.githubusercontent.com/leofig-rj/Hassio-Tanix-TX3/master/scr
 
 ```bash
 sudo reboot
+```
+
+## Instalando o Samba
+
+- Instale o Samba com o comando **armbian-config**;
+
+- Edite o arquivo **/etc/samba/smb.conf** e crie o compartilhamento a seguir:
+
+```text
+[homeassistant]
+         comment = Home Assistant
+         path = /usr/share/hassio/homeassistant
+         writable = yes
+         public = no
+         valid users = marcelo
+         force create mode = 0644
+```
+
+- Permita acesso externo à pasta do Home Assistant com o seguinte comando:
+
+```bash
+sudo chmod 777 -R /usr/share/hassio/homeassistant
+```
+
+- Crie o usuário no samba, com a mesma senha do Windows, conforme comando a seguir:
+
+```bash
+sudo smbpasswd -a marcelo
+```
+
+- Ative o serviço do Samba:
+
+```bash
+sudo systemctl enable --now smb
+```
+
+- Reinicie o sistema.
+
+## Instalando o HACS
+
+- Execute o comando a seguir:
+
+```bash
+wget -O - https://get.hacs.xyz | bash -
 ```
 
 ## Unbrick

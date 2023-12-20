@@ -62,14 +62,14 @@ timedatectl set-timezone America/Campo_Grande
 1. Definir IP fixo usando o comando **armbian-config** (192.168.100.14);
 2. Reiniciar a TV Box.
 
+### Instalando o Docker
+
+- Instale o Docker com o comando **armbian-config**.
+
 ### Instalando Home Assistant Container
 
 ```bash
 apt install apparmor jq wget curl udisks2 libglib2.0-bin network-manager dbus lsb-release systemd-journal-remote systemd-resolved -y
-```
-
-```bash
-curl -fsSL get.docker.com | sh
 ```
 
 ```bash
