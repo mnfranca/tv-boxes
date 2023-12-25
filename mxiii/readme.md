@@ -132,9 +132,3 @@ sudo service smbd restart
 ```
 
 - Reinicie o sistema.
-
-### Instalando o Oracle
-
-1. Formatar um SDCard;
-
-2. 
