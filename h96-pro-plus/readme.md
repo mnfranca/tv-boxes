@@ -208,14 +208,92 @@ netstat -tulpn | grep LISTEN
 docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASSWORD=jedi1234 -p 3306:3306 -d mysql
 ```
 
-## Instalado o GitLab
+## Instalado servidor Git
 
-1. Criar as pastas necessárias:
+1. Instalar o aplicativo:
 
 ```bash
-mkdir -p /opt/gitlab
+apt install git
 ```
 
+2. Criar o usuário gestor do Git (senha jedi1234):
+
+```bash
+adduser git
+passwd git
+```
+
+3. Alterar o nome padrão de branch para **main**:
+
+```bash
+git config --global init.defaultBranch main
+```
+
+4. Criar a pasta de armanzenamento do servidor Git:
+
+```bash
+mkdir /opt/git
+```
+
+5. Definir as permissões necessárias sobre a pasta criada:
+
+```bash
+chown -R git:git /opt/git
+```
+
+6. Alternar para o usuário administrador do Git:
+
+```bash
+su -l git
+```
+
+7. Configurar acesso SSH:
+
+```bash
+mkdir /opt/git/.ssh
+ssh-keygen -t rsa
+```
+
+8. Criar arquivo para chaves autorizadas:
+
+```bash
+touch authorized_keys
+```
+
+9. Adicionar a chave no arquivo **authorized_keys**:
+
+```bash
+cd /opt/git/.ssh
+cat id_rsa.pub >> authorized_keys
+```
+
+Informar a pasta **/opt/git/.ssh/id_rsa** quando solicitado.
+
+Editar o arquivo criado e colar a chave que foi gerada no arquivo **/opt/git/.ssh/id_rsa.pub**.
+
+10. Inicializar o repositório Git:
+
+```bash
+mkdir /opt/git/teste
+cd /opt/git/teste
+git init --bare
+```
+
+11. Com usuário **root**, editar o arquivo abaixo para permitir o acesso via SSH
+
+```bash
+nano /etc/ssh/sshd_config
+```
+
+12. Adicionar a seguinte linha no final do arquivo:
+
+```
+AllowUsers root git
+```
+
+13. Reiniciar o dispositivo
+
+--------------
 2. Criar a variável de ambiente para o GitLab:
 
 ```bash
