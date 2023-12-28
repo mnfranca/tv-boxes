@@ -223,75 +223,56 @@ adduser git
 passwd git
 ```
 
-3. Alterar o nome padrão de branch para **main**:
-
-```bash
-git config --global init.defaultBranch main
-```
-
-4. Criar a pasta de armanzenamento do servidor Git:
-
-```bash
-mkdir /opt/git
-```
-
-5. Definir as permissões necessárias sobre a pasta criada:
-
-```bash
-chown -R git:git /opt/git
-```
-
-6. Alternar para o usuário administrador do Git:
+3. Configurar SSH para o Git:
 
 ```bash
 su -l git
-```
-
-7. Configurar acesso SSH:
-
-```bash
-mkdir /opt/git/.ssh
+cd ~
+mkdir .ssh
+chmod 700 .ssh/
+touch .ssh/authorized_keys
+chmod 600 .ssh/authorized_keys
+cd .ssh
 ssh-keygen -t rsa
 ```
 
-8. Criar arquivo para chaves autorizadas:
+Ao solicitar **passphrase**, informar **jedi1234**;
+
+4. Adicionar a chave criada no arquivo **authorized_keys**
 
 ```bash
-touch authorized_keys
-```
-
-9. Adicionar a chave no arquivo **authorized_keys**:
-
-```bash
-cd /opt/git/.ssh
 cat id_rsa.pub >> authorized_keys
 ```
 
-Informar a pasta **/opt/git/.ssh/id_rsa** quando solicitado.
-
-Editar o arquivo criado e colar a chave que foi gerada no arquivo **/opt/git/.ssh/id_rsa.pub**.
-
-10. Inicializar o repositório Git:
+5. Criar a pasta dos respositórios Git:
 
 ```bash
-mkdir /opt/git/teste
-cd /opt/git/teste
+cd ~ 
+mkdir test.git
+cd test.git
+git config --global init.defaultBranch main
 git init --bare
 ```
 
-11. Com usuário **root**, editar o arquivo abaixo para permitir o acesso via SSH
+6. Com usuário **root**, editar o arquivo abaixo para permitir o acesso via SSH
 
 ```bash
 nano /etc/ssh/sshd_config
 ```
 
-12. Adicionar a seguinte linha no final do arquivo:
+7. Adicionar a seguinte linha no final do arquivo:
 
 ```
 AllowUsers root git
 ```
 
-13. Reiniciar o dispositivo
+9. Reiniciar o dispositivo
+
+10. Acessar o repositório remoto criado:
+
+```bash
+git remote add origin git@192.168.100.15:test.git
+```
 
 --------------
 2. Criar a variável de ambiente para o GitLab:
