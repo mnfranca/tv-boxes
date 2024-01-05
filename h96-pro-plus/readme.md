@@ -205,10 +205,22 @@ netstat -tulpn | grep LISTEN
 4. Instalar o MySQL via docker:
 
 ```bash
-docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASSWORD=jedi1234 -p 3306:3306 -d mysql
+mkdir /opt/mysql
+chown -R 200 /opt/mysql
+docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASSWORD=jedi1234 -v mysql:/opt/mysql -p 3306:3306 -d mysql
 ```
 
-## Instalado servidor Git
+## Instalando o phpMyAdmin para MySQL
+
+```bash
+ufw allow 8080
+docker pull phpmyadmin
+docker run --name phpmyadmin --restart=unless-stopped -d -e PMA_HOST=192.168.100.15 -p 8080:80 phpmyadmin
+```
+
+Usar usuário **root** e senha **jedi1234**.
+
+## Instalando servidor Git
 
 1. Instalar o aplicativo:
 
@@ -274,35 +286,80 @@ AllowUsers root git
 git remote add origin git@192.168.100.15:test.git
 ```
 
---------------
-2. Criar a variável de ambiente para o GitLab:
+## Instalando o GitBucked
 
 ```bash
-export GITLAB_HOME=/opt/gitlab
+mkdir /opt/gitbucket
+chmod 700 /opt/gitbucket
+ufw allow 8082
+ufw allow 29418
+docker pull gitbucket/gitbucket
+docker run --name gitbucket --restart=unless-stopped -d -p 8082:8082 -p 29418:29418 -e GITBUCKET_PORT=8082 -e BITBUCKET_HOME=/opt/gitbucket gitbucket/gitbucket
 ```
 
-3. Liberar a porta de rede do GitLab:
+Usuário padrão **root** e senha padrão **root**. Mudar a senha para **jedi1234**.
+
+## Instalando servidor Maven
+
+1. Instalar o JDK:
 
 ```bash
-ufw allow 443
-ufw allow 80
-ufw allow 22
+apt install default-jdk
 ```
 
-4. Instalar o GitLab via docker:
+2. Visualizar o caminho da instalação do Java (JAVA_HOME):
 
 ```bash
-docker run --detach \
-  --hostname gitlab.jedi.com \
-  --publish 443:443 --publish 80:80 --publish 24:22 \
-  --name gitlab \
-  --privileged \
-  --restart always \
-  --volume $GITLAB_HOME/config:/etc/gitlab \
-  --volume $GITLAB_HOME/logs:/var/log/gitlab \
-  --volume $GITLAB_HOME/data:/var/opt/gitlab \
-  --shm-size 256m \
-  gitlab/gitlab-ee:latest
+dirname $(dirname $(readlink -f $(which javac)))
+```
+
+3. Baixar o pacote do Maven:
+
+```bash
+cd /opt
+wget https://dlcdn.apache.org/maven/maven-3/3.9.6/binaries/apache-maven-3.9.6-bin.tar.gz
+```
+
+4. Descompactar os arquivos do Maven:
+
+```bash
+tar xzvf apache-maven-3.9.6-bin.tar.gz
+```
+
+5. Adicionar o seguinte trecho ao arquivo **~/.profile**:
+
+```
+# Add /opt/apache-maven-3.9.6 to PATH for all users
+export PATH="/opt/apache-maven-3.9.6/bin:$PATH"
+```
+
+6. Reiniciar o sistema.
+
+## Instalando o Nexus
+
+```bash
+apt install apparmor
+ufw allow 8081
+mkdir /opt/nexus
+chown -R 200 /opt/nexus
+docker pull klo2k/nexus3
+docker run --privileged -d -p 8081:8081 -v /opt/nexus:/nexus-data --name nexus --restart=unless-stopped klo2k/nexus3
+```
+
+A senha do usuário **admin** encontra-se no arquivo **admin.password**, na raiz do volume do container.
+
+Para fazer deploy de biblioteca no Nexus, utilizar o comando a seguir:
+
+```bash
+mvn deploy:deploy-file \
+    -DgroupId=com.example.test \
+    -DartifactId=test-module \
+    -Dversion=1.0.0 \
+    -DgeneratePom=true \
+    -Dpackaging=jar \
+    -DrepositoryId=sample-rel \
+    -Durl=http://nexus.private.net/Your_Nexus_Repository_Path \
+    -Dfile=./PATH_TO_JAR_FILE
 ```
 
 ## Instalando o Oracle 
