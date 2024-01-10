@@ -182,6 +182,64 @@ mount -a
 
 8. Reinicie o sistema.
 
+## Criando partição SWAP no cartão de memória
+
+1. Mostrar as partições swap:
+
+```bash
+swapon --show
+```
+
+2. Mostrar os arquivos de swap:
+
+```bash
+cat /proc/swaps
+```
+
+3. Mostrar as informações de uso de memória:
+
+```bash
+free -m
+```
+
+4. Listar as partições do cartão de memória:
+
+```bash
+fdisk -l /dev/mmcblk0
+```
+
+5. Criar a partição para uso do swap no cartão de memória:
+
+```bash
+fdisk /dev/mmcblk0
+```
+
+Utilizar os menus do sistema para criar partição e tipo de arquivos para a partição swap.
+
+6. Confirma as alterações de partições:
+
+```bash
+partprobe /dev/mmcblk0
+```
+
+7. Criar a assinatura de swap na partição criada:
+
+```bash
+mkswap /dev/mmcblk0p3
+```
+
+8. Ativar a partição de swap temporariamente:
+
+```bash
+swapon /dev/mmcblk0p3
+```
+
+9. Tornar a partição persistente:
+
+```bash
+sudo nano /etc/fstab
+```
+
 ## Instalando o MySQL
 
 1. Instalar o aplicativo para liberação da porta de rede do MySQL:
@@ -286,7 +344,7 @@ AllowUsers root git
 git remote add origin git@192.168.100.15:test.git
 ```
 
-## Instalando o GitBucked
+## Instalando o GitBucket
 
 ```bash
 mkdir /opt/gitbucket
@@ -294,7 +352,24 @@ chmod 700 /opt/gitbucket
 ufw allow 8082
 ufw allow 29418
 docker pull gitbucket/gitbucket
-docker run --name gitbucket --restart=unless-stopped -d -p 8082:8082 -p 29418:29418 -e GITBUCKET_PORT=8082 -e BITBUCKET_HOME=/opt/gitbucket gitbucket/gitbucket
+```
+
+- Opção 1: 
+
+```
+docker run --name gitbucket --restart=unless-stopped --privileged -d -p 8082:8082 -p 29418:29418 -e GITBUCKET_PORT=8082 gitbucket/gitbucket
+```
+
+- Opção 2 (utilizando banco de dados MySQL externo): 
+
+```
+docker run --name gitbucket --restart=unless-stopped --privileged -d -p 8082:8082 -p 29418:29418 -e GITBUCKET_PORT=8082 -e GITBUCKET_DB_URL="jdbc:mysql://192.168.100.15/gitbucket?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true" -e GITBUCKET_DB_USER=root -e GITBUCKET_DB_PASSWORD=jedi1234 gitbucket/gitbucket
+```
+
+- Opção 3 (utilizando banco de dados MySQL externo e volume personalizado) **NÃO FUNCIONA**: 
+
+```
+docker run --name gitbucket --restart=unless-stopped --privileged -d -p 8082:8082 -p 29418:29418 -v gitbucket:/opt/gitbucket -e GITBUCKET_PORT=8082 -e GITBUCKET_DB_URL="jdbc:mysql://192.168.100.15/gitbucket?useUnicode=true&characterEncoding=utf8&allowPublicKeyRetrieval=true" -e GITBUCKET_DB_USER=root -e GITBUCKET_DB_PASSWORD=jedi1234 gitbucket/gitbucket
 ```
 
 Usuário padrão **root** e senha padrão **root**. Mudar a senha para **jedi1234**.
@@ -432,8 +507,23 @@ wget -O - https://get.hacs.xyz | bash -
 cat /etc/os-release
 ```
 
+### Comandos do docker
+
+- Mostrar os volumes de um container:
+
+```bash 
+docker inspect -f '{{ .Mounts }}' containerid
+```
+
+- Excluir volumes não utilizados:
+
+```bash
+docker volume prune
+```
+
 ## Referências
 
 - [Instruções de instalação](https://forum.armbian.com/topic/27825-proper-way-to-install-armbian-linux-on-h96-pro-plus-s912-or-equivalent-cli-ver/);
 - [Atualização do Python](https://computingforgeeks.com/how-to-install-python-on-debian-linux/).
 - [Oracle](https://mikedietrichde.com/2023/07/05/oracle-database-19c-on-arm-platform-is-available/)
+- [SWAP](https://phoenixnap.com/kb/swap-partition)
