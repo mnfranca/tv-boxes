@@ -273,7 +273,7 @@ docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASS
 ```bash
 ufw allow 8080
 docker pull phpmyadmin
-docker run --name phpmyadmin --restart=unless-stopped -d -e PMA_HOST=192.168.100.15 -p 8080:80 phpmyadmin
+docker run --name phpmyadmin --restart=unless-stopped -d -e PMA_HOST=192.168.100.15 -e UPLOAD_LIMIT=30M -p 8080:80 phpmyadmin
 ```
 
 Usar usuário **root** e senha **jedi1234**.
@@ -373,6 +373,37 @@ docker run --name gitbucket --restart=unless-stopped --privileged -d -p 8082:808
 ```
 
 Usuário padrão **root** e senha padrão **root**. Mudar a senha para **jedi1234**.
+
+## Instalando Active Directory (com Samba)
+
+- Instalação: 
+
+```bash
+ufw allow 389
+ufw allow 636
+docker pull smblds/smblds
+docker run --name smblds --restart=unless-stopped --privileged -p 389:389 -p 636:636 -d -e TZ=America/Campo_Grande -e INSECURE_LDAP=true -e INSECURE_PASSWORDSETTINGS=true smblds/smblds:latest
+```
+
+- Criação de usuário acessando o terminal do container:
+
+```
+docker exec -it containerid /bin/sh
+samba-tool user add USERNAME PASSWORD
+```
+
+A senha inicial do administrador é **Passw0rd**.
+
+Dados do servidor:
+
+```
+Once the above files are installed, your Samba AD server will be ready to use
+Server Role:           active directory domain controller
+Hostname:              8412da7b9bb5
+NetBIOS Domain:        SAMDOM
+DNS Domain:            samdom.example.com
+DOMAIN SID:            S-1-5-21-3170988374-1446572079-941881466
+```
 
 ## Instalando servidor Maven
 
@@ -513,12 +544,19 @@ cat /etc/os-release
 
 ```bash 
 docker inspect -f '{{ .Mounts }}' containerid
+docker inspect -f '{{json  .Mounts }}' containerid | python3 -m json.tool
 ```
 
 - Excluir volumes não utilizados:
 
 ```bash
 docker volume prune
+```
+
+- Executar linha de comando dentro de container:
+
+```bash
+docker exec -it 8412da7b9bb5 /bin/sh
 ```
 
 ## Referências
