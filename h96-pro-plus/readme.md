@@ -265,7 +265,11 @@ netstat -tulpn | grep LISTEN
 ```bash
 mkdir /opt/mysql
 chown -R 200 /opt/mysql
-docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASSWORD=jedi1234 -v mysql:/opt/mysql -p 3306:3306 -d mysql
+```
+
+```bash
+docker pull mysql
+docker run --name mysql --privileged --restart=unless-stopped -e MYSQL_ROOT_PASSWORD=jedi1234 -v /opt/mysql:/var/lib/mysql -p 3306:3306 -d mysql --character-set-server=utf8mb4 --collation-server=utf8mb4_bin --lower_case_table_names=1
 ```
 
 ## Instalando o phpMyAdmin para MySQL
