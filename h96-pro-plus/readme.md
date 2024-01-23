@@ -144,7 +144,21 @@ fdisk -l
 lsblk
 ```
 
-3. Formatando as partições:
+3. Particionando o disco:
+
+```bash
+fdisk /dev/mmcblk0
+```
+
+Tamanhos para cartão de memória de 64GB:
+
+```
+/opt > 16GB
+/var/lib/docker > 40GB
+SWAP > 8GB
+```
+
+4. Formatando as partições:
 
 ```bash
 mkfs.ext4 -F /dev/mmcblk0p1
@@ -152,7 +166,7 @@ mkfs.ext4 -F /dev/mmcblk0p2
 mkfs.ext4 -F /dev/mmcblk0p3
 ```
 
-4. Mostrando os detalhes das partições:
+5. Mostrando os detalhes das partições:
 
 ```bash
 parted /dev/mmcblk0p1 --script print
@@ -160,27 +174,27 @@ parted /dev/mmcblk0p2 --script print
 parted /dev/mmcblk0p3 --script print
 ```
 
-5. Recuperando o UUID da unidade do sdcard:
+6. Recuperando o UUID da unidade do sdcard:
 
 ```bash
 blkid /dev/mmcblk0p1
 blkid /dev/mmcblk0p2
 ```
 
-6. Alterando o arquivo **/etc/fstav** para mapear as pastas **/var/lib/docker** e **/opt** para as partições do sdcard:
+7. Alterando o arquivo **/etc/fstav** para mapear as pastas **/var/lib/docker** e **/opt** para as partições do sdcard:
 
 ```bash
 UUID=4c67b9c5-8e01-4ad3-8157-485f027e9a60 /var/lib/docker    ext4    defaults           0 2
 UUID=83a56db6-7ac7-4b57-9fea-18780630407f /opt               ext4    defaults           0 2
 ```
 
-7. Executar a montagem da pasta **/var/lib/docker** no pendrive:
+8. Executar a montagem da pasta **/var/lib/docker** no pendrive:
 
 ```bash
 mount -a
 ```
 
-8. Reinicie o sistema.
+9. Reinicie o sistema.
 
 ## Criando partição SWAP no cartão de memória
 
@@ -470,6 +484,208 @@ mvn deploy:deploy-file \
     -DrepositoryId=sample-rel \
     -Durl=http://nexus.private.net/Your_Nexus_Repository_Path \
     -Dfile=./PATH_TO_JAR_FILE
+```
+
+## Instalando o Oracle para Oracle Linux:
+
+1. Instalar o Oracle Linux:
+
+```bash
+docker pull arm64v8/oraclelinux:8.9
+docker run -itd -h oracle-linux --name oracle-linux --restart=unless-stopped arm64v8/oraclelinux:8.9
+```
+
+2. Instalar o Oracle Database
+
+```bash
+docker exec -it containerid bash
+cat /etc/oracle-release
+dnf install oracle-database-preinstall-19c
+dnf -y localinstall oracle-database-preinstall-19c-1.0-3.el8.aarch64.rpm
+```
+
+Reinicie o sistema.
+
+``` bash
+passwd oracle
+mkdir -p /home/oracle/product/19.0.0/dbhome_1
+mkdir -p /home/oracle/oradata
+chown -R oracle:oinstall /home/oracle
+chmod -R 775 /home/oracle
+mkdir /home/oracle/scripts
+```
+
+Arquivo de configuração:
+
+```bash
+cat > /home/oracle/scripts/setEnv.sh <<EOF
+# Oracle Settings
+export TMP=/tmp
+export TMPDIR=\$TMP
+
+export ORACLE_HOSTNAME=ol8-19.localdomain
+export ORACLE_UNQNAME=cdb1
+export ORACLE_BASE=/home/oracle
+export ORACLE_HOME=\$ORACLE_BASE/product/19.0.0/dbhome_1
+export ORA_INVENTORY=/home/oracle/oraInventory
+export ORACLE_SID=cdb1
+export PDB_NAME=pdb1
+export DATA_DIR=/home/oracle/oradata
+
+export PATH=/usr/sbin:/usr/local/bin:\$PATH
+export PATH=\$ORACLE_HOME/bin:\$PATH
+
+export LD_LIBRARY_PATH=\$ORACLE_HOME/lib:/lib:/usr/lib
+export CLASSPATH=\$ORACLE_HOME/jlib:\$ORACLE_HOME/rdbms/jlib
+EOF
+```
+
+```bash
+echo ". /home/oracle/scripts/setEnv.sh" >> /home/oracle/.bash_profile
+```
+
+```bash
+cat > /home/oracle/scripts/start_all.sh <<EOF
+#!/bin/bash
+. /home/oracle/scripts/setEnv.sh
+
+export ORAENV_ASK=NO
+. oraenv
+export ORAENV_ASK=YES
+
+dbstart \$ORACLE_HOME
+EOF
+```
+
+```bash
+cat > /home/oracle/scripts/stop_all.sh <<EOF
+#!/bin/bash
+. /home/oracle/scripts/setEnv.sh
+
+export ORAENV_ASK=NO
+. oraenv
+export ORAENV_ASK=YES
+
+dbshut \$ORACLE_HOME
+EOF
+```
+
+```bash
+chown -R oracle:oinstall /home/oracle/scripts
+chmod u+x /home/oracle/scripts/*.sh
+```
+
+Scripts para iniciar e parar o banco de dados:
+
+```bash
+~/scripts/start_all.sh
+~/scripts/stop_all.sh
+```
+
+Iniciar a instalação:
+
+```bash
+docker exec -it --user oracle bcc bash
+. /home/oracle/scripts/setEnv.sh
+cd $ORACLE_HOME
+unzip -oq /home/LINUX.ARM64_1919000_db_home.zip
+export CV_ASSUME_DISTID=OEL8.9
+```
+
+```bash
+./runInstaller -ignorePrereq -waitforcompletion -silent                        \
+    -responseFile ${ORACLE_HOME}/install/response/db_install.rsp               \
+    oracle.install.option=INSTALL_DB_SWONLY                                    \
+    ORACLE_HOSTNAME=${ORACLE_HOSTNAME}                                         \
+    UNIX_GROUP_NAME=oinstall                                                   \
+    INVENTORY_LOCATION=${ORA_INVENTORY}                                        \
+    SELECTED_LANGUAGES=en,en_GB                                                \
+    ORACLE_HOME=${ORACLE_HOME}                                                 \
+    ORACLE_BASE=${ORACLE_BASE}                                                 \
+    oracle.install.db.InstallEdition=EE                                        \
+    oracle.install.db.OSDBA_GROUP=dba                                          \
+    oracle.install.db.OSBACKUPDBA_GROUP=dba                                    \
+    oracle.install.db.OSDGDBA_GROUP=dba                                        \
+    oracle.install.db.OSKMDBA_GROUP=dba                                        \
+    oracle.install.db.OSRACDBA_GROUP=dba                                       \
+    SECURITY_UPDATES_VIA_MYORACLESUPPORT=false                                 \
+    DECLINE_SECURITY_UPDATES=true
+```
+
+Avisos da instalação:
+
+```
+[WARNING] [INS-32008] Oracle base location cant be same as the user home directory.
+   CAUSE: The specified Oracle base is same as the user home directory.
+   ACTION: Provide an Oracle base location other than the user home directory.
+[WARNING] [INS-32055] The Central Inventory is located in the Oracle base.
+   ACTION: Oracle recommends placing this Central Inventory in a location outside the Oracle base directory.
+```
+
+Criar o banco de dados:
+
+```bash
+dbca -silent -createDatabase                                                   \
+     -templateName General_Purpose.dbc                                         \
+     -gdbname ${ORACLE_SID} -sid  ${ORACLE_SID} -responseFile NO_VALUE         \
+     -characterSet AL32UTF8                                                    \
+     -sysPassword jedi1234                                                     \
+     -systemPassword jedi1234                                                  \
+     -createAsContainerDatabase true                                           \
+     -numberOfPDBs 1                                                           \
+     -pdbName ${PDB_NAME}                                                      \
+     -pdbAdminPassword jedi1234                                                \
+     -databaseType MULTIPURPOSE                                                \
+     -memoryMgmtType auto_sga                                                  \
+     -totalMemory 2000                                                         \
+     -storageType FS                                                           \
+     -datafileDestination "${DATA_DIR}"                                        \
+     -redoLogFileSize 50                                                       \
+     -emConfiguration NONE                                                     \
+     -ignorePreReqs
+```
+
+// Deprecated
+```bash
+dnf install -y oraclelinux-developer-release-el8
+dnf config-manager --set-enabled ol8_developer
+cd /home
+curl https://yum.oracle.com/repo/OracleLinux/OL8/developer/x86_64/getPackage/oracle-database-preinstall-23c-1.0-1.el8.x86_64.rpm --output orac
+le-database-preinstall-23c-1.0-1.el8.x86_64.rpm
+
+dnf -y install oracle-database-preinstall-23c
+dnf install -y oracle-database-preinstall-23c-1.0-1.el8.x86_64.rpm
+
+Access the Oracle Database Free software download page:
+
+https://www.oracle.com/database/technologies/free-downloads.html
+
+Download the oracle-database-free-23c-1.0-1.el8.x86_64.rpm RPM file required for performing an RPM-based installation to a directory of your choice.
+
+Install the database software.
+
+
+Copy
+dnf -y localinstall oracle-database-free-23c-1.0-1.el8.x86_64.rpm
+Note:Review the RPM log files to determine the system configuration changes. For example, review /var/log/oracle-database-preinstall-23c/results/orakernel.log.
+The installation of the Oracle Database software is now complete.
+
+dnf module install -y container-tools:ol8
+dnf config-manager --set-enabled ol8_developer
+dnf install -y oracle-database-preinstall-23c
+curl -JLO https://download.oracle.com/otn-pub/otn_software/db-free/oracle-database-free-23c-1.0-1.el8.x86_64.rpm
+dnf localinstall -y  oracle-database-free-23c-1.0-1.el8.x86_64.rpm
+```
+
+3. Configurar o Oracle Database
+
+```bash
+cat /etc/sysconfig/oracle-free–23c.conf
+/etc/init.d/oracle-free-23c configure
+export ORACLE_SID=FREE
+export ORAENV_ASK=NO
+. /opt/oracle/product/23c/dbhomeFree/bin/oraenv
+sqlplus / as sysdba
 ```
 
 ## Instalando o Oracle 
