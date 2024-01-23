@@ -64,9 +64,9 @@ apt upgrade
 ## Atualizando o Linux Debian 10 (buster) para Debian 11 (bullseye) 
 
 ```bash
-sudo apt install gcc-8-base -y
-sudo apt --allow-releaseinfo-change update -y
-sudo apt upgrade -y
+apt install gcc-8-base -y
+apt --allow-releaseinfo-change update -y
+apt upgrade -y
 ```
 
 - Reinicie o sistema;
