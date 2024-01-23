@@ -163,7 +163,6 @@ SWAP > 8GB
 ```bash
 mkfs.ext4 -F /dev/mmcblk0p1
 mkfs.ext4 -F /dev/mmcblk0p2
-mkfs.ext4 -F /dev/mmcblk0p3
 ```
 
 5. Mostrando os detalhes das partições:
@@ -171,7 +170,6 @@ mkfs.ext4 -F /dev/mmcblk0p3
 ```bash
 parted /dev/mmcblk0p1 --script print
 parted /dev/mmcblk0p2 --script print
-parted /dev/mmcblk0p3 --script print
 ```
 
 6. Recuperando o UUID da unidade do sdcard:
